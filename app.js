@@ -15,3 +15,13 @@ const days=Math.ceil((new Date('2026-10-25T11:58:00+08:00')-Date.now())/86400000
 // Begin loading music immediately; honor browser autoplay restrictions.
 audio.load(); audio.play().then(setMusic).catch(()=>{});
 document.addEventListener("WeixinJSBridgeReady",()=>{audio.play().then(setMusic).catch(()=>{});},{once:true});
+
+// Apply loading states to compressed previews, including cached images.
+document.querySelectorAll('img[data-preview]').forEach(img=>{
+ const shell=img.closest('.image-shell');
+ const done=()=>{shell.classList.remove('is-loading','load-error');shell.setAttribute('aria-busy','false')};
+ const failed=()=>{shell.classList.remove('is-loading');shell.classList.add('load-error');shell.setAttribute('aria-busy','false')};
+ shell.setAttribute('aria-busy','true');img.addEventListener('load',done);img.addEventListener('error',failed);
+ if(img.complete){if(img.naturalWidth>0)done();else failed()}
+ shell.addEventListener('click',e=>{if(!shell.classList.contains('load-error'))return;e.preventDefault();e.stopImmediatePropagation();shell.classList.remove('load-error');shell.classList.add('is-loading');shell.setAttribute('aria-busy','true');img.src=img.src.split('?')[0]+'?retry='+Date.now();},true);
+});
